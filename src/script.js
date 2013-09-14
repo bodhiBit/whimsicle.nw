@@ -9,13 +9,11 @@ maxerr:50, newcap:true, browser:true, node: true */
       Gui = require("nw.gui");
       
   
-  var appsPath = "apps",
+  var appsPath,
       appsUrl,
       config;
   
   function _init(){
-    appsPath = realPath("[home]/whimsicle-apps");
-    config = undefined;
     for (var i = 0; i < Gui.App.argv.length; i++) {
       var arg = Gui.App.argv[i];
       if (arg.substr(0,2) === "--") {
@@ -27,10 +25,25 @@ maxerr:50, newcap:true, browser:true, node: true */
         }
       }
     }
+    if (!appsPath) {
+      var command = "git --version";
+      ChildProcess.exec(command, function(err, stdout, stderr){
+        if (err) {
+          appsPath = Path.resolve("apps");
+        } else {
+          appsPath = realPath("[home]/whimsicle.js");
+        }
+        _startApp();
+      });
+    }
+  }
+  
+  function _startApp() {
     Fs.exists(appsPath, function(exists){
       if (exists) {
         Gui.Window.get().maximize();
         window.addEventListener("message", onMessage);
+        config = undefined;
         
         var iframe = document.createElement("iframe");
         iframe.setAttribute("src", appsPath+"/");
@@ -44,17 +57,29 @@ maxerr:50, newcap:true, browser:true, node: true */
         document.body.appendChild(iframe);
       } else {
         var h1 = document.createElement("h1");
-        h1.textContent = "Copying apps";
+        h1.textContent = "Downloading apps";
         document.body.appendChild(h1);
         var p = document.createElement("p");
-        p.textContent = "Please wait...";
+        p.textContent = "Please wait - This may take a while...";
         document.body.appendChild(p);
         
-        doCopy("apps", Path.resolve(appsPath), function(result) {
-          if (result.success) {
-            location.reload();
+        var command =
+          'git clone https://github.com/bodhiBit/whimsicle.js.git "'+
+          appsPath+'" && cd "'+
+          appsPath+'" && git submodule update --init --recursive';
+        if (Path.sep === "\\") {
+          command = appsPath.substr(0, appsPath.indexOf("\\"))+" && "+command;
+        }
+        var pre = document.createElement("pre");
+        pre.textContent = command;
+        document.body.appendChild(pre);
+        ChildProcess.exec(command, function(err, stdout, stderr){
+          if (err) {
+            pre = document.createElement("pre");
+            pre.textContent = stdout+stderr;
+            document.body.appendChild(pre);
           } else {
-            alert(result.status+result.stdout+result.stderr);
+            location.reload();
           }
         });
       }
@@ -125,9 +150,13 @@ maxerr:50, newcap:true, browser:true, node: true */
   
   function getConfig() {
     if (!config) {
-      var data = Fs.readFileSync(appsPath+"/config.json");
-      if (data) {
-        config = JSON.parse(data);
+      try {
+        var data = Fs.readFileSync(appsPath+"/config.json");
+        if (data) {
+          config = JSON.parse(data);
+        }
+      } catch (e) {
+        config = {};
       }
     }
     config.appsUrl = appsUrl;
