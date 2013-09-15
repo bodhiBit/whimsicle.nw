@@ -27,7 +27,7 @@ maxerr:50, newcap:true, browser:true, node: true */
     }
     if (!appsPath) {
       var command = "git --version";
-      ChildProcess.exec(command, function(err, stdout, stderr){
+      ChildProcess.exec(command, function(err){
         if (err) {
           appsPath = Path.resolve("apps");
         } else {
@@ -35,6 +35,8 @@ maxerr:50, newcap:true, browser:true, node: true */
         }
         _startApp();
       });
+    } else {
+      _startApp();
     }
   }
   
@@ -56,12 +58,8 @@ maxerr:50, newcap:true, browser:true, node: true */
         iframe.setAttribute("nwdisable", true);
         document.body.appendChild(iframe);
       } else {
-        var h1 = document.createElement("h1");
-        h1.textContent = "Downloading apps";
-        document.body.appendChild(h1);
-        var p = document.createElement("p");
-        p.textContent = "Please wait - This may take a while...";
-        document.body.appendChild(p);
+        _appendElement("h1", "Downloading apps");
+        _appendElement("p", "Please wait - This may take a while...");
         
         var command =
           'git clone https://github.com/bodhiBit/whimsicle.js.git "'+
@@ -70,20 +68,30 @@ maxerr:50, newcap:true, browser:true, node: true */
         if (Path.sep === "\\") {
           command = appsPath.substr(0, appsPath.indexOf("\\"))+" && "+command;
         }
-        var pre = document.createElement("pre");
-        pre.textContent = command;
-        document.body.appendChild(pre);
+        _appendElement("code", command);
         ChildProcess.exec(command, function(err, stdout, stderr){
           if (err) {
-            pre = document.createElement("pre");
-            pre.textContent = stdout+stderr;
-            document.body.appendChild(pre);
+            _appendElement("pre", stdout+stderr);
           } else {
-            location.reload();
+            var updateFile = "update.sh";
+            if (process.platform === "win32") {
+              updateFile = "update.bat";
+            }
+            doCopy(updateFile, appsPath+Path.sep+updateFile, function() {
+              ChildProcess.exec("chmod +x '"+appsPath+Path.sep+updateFile+"'", function(){
+                location.reload();
+              });
+            });
           }
         });
       }
     });
+  }
+  
+  function _appendElement(tag, text) {
+    var el = document.createElement(tag);
+    el.textContent = text;
+    document.body.appendChild(el);
   }
   
   function onMessage(event) {
