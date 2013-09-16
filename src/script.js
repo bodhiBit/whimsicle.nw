@@ -43,7 +43,7 @@ maxerr:50, newcap:true, browser:true, node: true */
             _startApp();
           }
         } else {
-          appsPath = realPath("[home]/whimsicle.js");
+          appsPath = realPath("[home]/whimsicle-apps");
           if (localStorage.getItem("config.json")) {
             localStorage.removeItem("config.json");
           }
@@ -77,7 +77,7 @@ maxerr:50, newcap:true, browser:true, node: true */
         _appendElement("p", "Please wait - This may take a while...");
         
         var command =
-          'git clone https://github.com/bodhiBit/whimsicle.js.git "'+
+          'git clone https://github.com/bodhiBit/whimsicle-apps.git "'+
           appsPath+'" && cd "'+
           appsPath+'" && git submodule update --init --recursive';
         if (Path.sep === "\\") {

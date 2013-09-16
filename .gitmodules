@@ -1,3 +1,3 @@
 [submodule "src/apps"]
 	path = src/apps
-	url = https://github.com/bodhiBit/whimsicle.js.git
+	url = https://github.com/bodhiBit/whimsicle-apps.git
