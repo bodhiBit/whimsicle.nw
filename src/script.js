@@ -1,6 +1,6 @@
 /*jshint forin:true, noarg:true, noempty:true, eqeqeq:true, bitwise:true,
 strict:true, undef:true, unused:true, curly:true, devel:true, indent:2,
-maxerr:50, newcap:true, browser:true, node: true */
+maxerr:50, newcap:true, browser:true, node:true */
 (function(){
   "use strict";
   var Fs = require("fs"),
@@ -154,6 +154,12 @@ maxerr:50, newcap:true, browser:true, node: true */
           break;
         case "copy":
           doCopy(path, destination, respond);
+          break;
+        case "run":
+          doRun(data.command, respond);
+          break;
+        case "open":
+          doOpen(data.url, respond);
           break;
         default:
           respond({ success: false, status: "unknown command" });
@@ -468,6 +474,45 @@ maxerr:50, newcap:true, browser:true, node: true */
         reader.pipe(writer);
       }
     });
+  }
+  
+  function doRun(command, cb) {
+    var _command = command;
+    var _config = { timeout: 60000 };
+    if (typeof command === "object") {
+      _command = command[process.platform];
+      if (!_command) {
+        _command = command.command;
+      }
+      _config = command;
+      if (!_config.timeout) {
+        _config.timeout = 60000;
+      }
+    }
+    ChildProcess.exec(_command, _config, function(err, stdout, stderr){
+      var out = {
+        err: err,
+        stdout: stdout,
+        stderr: stderr
+      };
+      if (err) {
+        out.success = false;
+        out.status = "err";
+      } else {
+        out.success = true;
+        out.status = "ok";
+      }
+      cb(out);
+    });
+  }
+  
+  function doOpen(url, cb) {
+    if (url.indexOf("://") > 0) {
+      Gui.Shell.openExternal(url);
+    } else {
+      Gui.Shell.openItem(url);
+    }
+    cb({ success: true, status: "ok" });
   }
   
   _init();
