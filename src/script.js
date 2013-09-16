@@ -30,10 +30,25 @@ maxerr:50, newcap:true, browser:true, node: true */
       ChildProcess.exec(command, function(err){
         if (err) {
           appsPath = Path.resolve("apps");
+          if (localStorage.getItem("config.json")) {
+            doWrite(
+              appsPath+Path.sep+"config.json",
+              localStorage.getItem("config.json"),
+              "utf8",
+              function(){
+                _startApp();
+              }
+            );
+          } else {
+            _startApp();
+          }
         } else {
           appsPath = realPath("[home]/whimsicle.js");
+          if (localStorage.getItem("config.json")) {
+            localStorage.removeItem("config.json");
+          }
+          _startApp();
         }
-        _startApp();
       });
     } else {
       _startApp();
@@ -114,10 +129,13 @@ maxerr:50, newcap:true, browser:true, node: true */
         switch (data.syscall) {
         case "config":
           if (data.config) {
-            Fs.writeFileSync(appsPath+"/config.json", JSON.stringify(data.config));
-            config = undefined;
+            doWrite(appsPath+"/config.json", JSON.stringify(data.config), "utf8", function(result) {
+              result.config = getConfig();
+              respond(result);
+            });
+          } else {
+            respond({ success: true, status: "ok", config: getConfig() });
           }
-          respond({ success: true, status: "ok", config: getConfig() });
           break;
         case "probe":
           doProbe(path, respond);
@@ -346,6 +364,12 @@ maxerr:50, newcap:true, browser:true, node: true */
               cb({ success: false, status: "err", err: err });
             }
           } else {
+            if (path === realPath("[apps]/config.json")) {
+              localStorage.setItem("config.json", data);
+            }
+            if (Path.basename(path) === "config.json") {
+              config = undefined;
+            }
             cb({ success: true, status: status });
           }
         });
