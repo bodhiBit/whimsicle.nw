@@ -489,6 +489,16 @@ maxerr:50, newcap:true, browser:true, node:true */
         _config.timeout = 60000;
       }
     }
+    if (_config.paths) {
+      for (var name in _config.paths) {
+        if (_config.paths.hasOwnProperty(name)) {
+          var path = realPath(_config.paths[name]);
+          while (_command.indexOf("&"+name+";") > -1) {
+            _command = _command.replace("&"+name+";", path);
+          }
+        }
+      }
+    }
     ChildProcess.exec(_command, _config, function(err, stdout, stderr){
       var out = {
         err: err,
@@ -507,10 +517,15 @@ maxerr:50, newcap:true, browser:true, node:true */
   }
   
   function doOpen(url, cb) {
-    if (url.indexOf("://") > 0) {
-      Gui.Shell.openExternal(url);
-    } else {
+    var path;
+    if (url.substr(0,1) === "/" || url.substr(0,1) === "[") {
+      path = realPath(url);
+    }
+    
+    if (path) {
       Gui.Shell.openItem(url);
+    } else {
+      Gui.Shell.openExternal(url);
     }
     cb({ success: true, status: "ok" });
   }
