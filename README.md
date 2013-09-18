@@ -1,7 +1,7 @@
 whimsicle.node-webkit
 =====================
 
-[Node-webkit](https://www.dropbox.com/s/akyntv9eci9cdct/whimsicle.exe) based
+[Node-webkit](https://github.com/rogerwang/node-webkit) based
 shell for [whimsicle](https://github.com/bodhiBit/whimsicle-apps)..
 
 Downloads
