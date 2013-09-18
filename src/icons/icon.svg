@@ -1,0 +1,130 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" version="1.1">
+
+  <!-- fills -->
+  <g style="stroke:none;">
+    <!-- entire pencil -->
+    <polygon
+      style="fill:#fed"
+      points="
+        005,005
+        065,025
+        125,085
+        125,105
+        105,125
+        085,125
+        025,065
+      "
+    />
+    <!-- pencil end -->
+    <polygon
+      style="fill:#987"
+      points="
+        125,085
+        105,085
+        085,105
+        085,125
+        105,125
+        125,105
+      "
+    />
+    <!-- upper right face -->
+    <polygon
+      style="fill:#fc6"
+      points="
+        065,025
+        125,085
+        105,085
+        065,045
+      "
+    />
+    <!-- middle face -->
+    <polygon
+      style="fill:#c93"
+      points="
+        045,045
+        065,045
+        105,085
+        085,105
+        045,065
+      "
+    />
+    <!-- lower left face -->
+    <polygon
+      style="fill:#960"
+      points="
+        025,065
+        085,125
+        085,105
+        045,065
+      "
+    />
+  </g>
+  
+  <!-- pencil tip -->
+  <circle cx="15" cy="15" r="8" fill="#000" />
+  <!-- strokes -->
+  <g style="fill:none; stroke:#000; stroke-width:8;">
+    <!-- pencil outline -->
+    <polygon
+      points="
+        005,005
+        065,025
+        125,085
+        125,105
+        105,125
+        085,125
+        025,065
+      "
+    />
+    <!-- tip edge -->
+    <polyline
+      points="
+        065,025
+        065,045
+        045,045
+        045,065
+        025,065
+      "
+    />
+    <!-- end edge -->
+    <polyline
+      points="
+        125,085
+        105,085
+        085,105
+        085,125
+      "
+    />
+    <!-- upper right ridge -->
+    <polyline
+      points="
+        065,045
+        105,085
+      "
+    />
+    <!-- lower left ridge -->
+    <polyline
+      points="
+        045,065
+        085,105
+      "
+    />
+  </g>
+  
+  <!-- popsicle stick -->
+  <polyline
+    style="fill:#fe0; stroke:#000; stroke-width:8;"
+    points="
+      115,095
+      155,135
+      155,145
+      145,155
+      135,155
+      095,115
+    "
+  />
+</svg> 
