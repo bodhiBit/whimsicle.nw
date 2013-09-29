@@ -1,7 +1,8 @@
 {
   "name": "whimsicle",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "index.html",
+  "single-instance": true,
   "window": {
     "toolbar": false,
     "icon": "icons/icon128.png"
