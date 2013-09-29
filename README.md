@@ -1,5 +1,6 @@
 whimsicle.node-webkit
 =====================
+![icon](https://raw.github.com/bodhiBit/whimsicle.node-webkit/master/src/icons/icon128.png)
 
 [Node-webkit](https://github.com/rogerwang/node-webkit) based
 shell for [whimsicle](https://github.com/bodhiBit/whimsicle-apps)..
