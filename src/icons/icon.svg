@@ -4,6 +4,40 @@
 
 <svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" version="1.1">
 
+  <!-- popsicle stick -->
+  <polyline
+    style="fill:#db8; stroke:none;"
+    points="
+      125,105
+      155,135
+      155,145
+      145,155
+      135,155
+      105,125
+    "
+  />
+  <polyline
+    style="fill:#a85; stroke:none;"
+    points="
+      120,100
+      135,115
+      130,130
+      120,140
+      100,120
+    "
+  />
+  <polyline
+    style="fill:none; stroke:#000; stroke-width:8;"
+    points="
+      125,105
+      155,135
+      155,145
+      145,155
+      135,155
+      105,125
+    "
+  />
+  
   <!-- fills -->
   <g style="stroke:none;">
     <!-- entire pencil -->
@@ -19,7 +53,7 @@
         025,065
       "
     />
-    <!-- pencil end -->
+    <!-- pencil end
     <polygon
       style="fill:#fed"
       points="
@@ -30,35 +64,35 @@
         115,135
         135,115
       "
-    />
+    /> -->
     <!-- upper right face -->
     <polygon
-      style="fill:#fc6"
+      style="fill:#6cf"
       points="
         065,025
         135,095
-        120,100
+        130,110
         065,045
       "
     />
     <!-- middle face -->
     <polygon
-      style="fill:#c93"
+      style="fill:#39c"
       points="
         045,045
         065,045
-        120,100
-        100,120
+        130,110
+        110,130
         045,075
       "
     />
     <!-- lower left face -->
     <polygon
-      style="fill:#960"
+      style="fill:#069"
       points="
         025,065
         095,135
-        100,120
+        110,130
         045,065
       "
     />
@@ -90,7 +124,7 @@
         025,065
       "
     />
-    <!-- end edge -->
+    <!-- end edge
     <polyline
       points="
         135,095
@@ -98,37 +132,24 @@
         100,120
         095,135
       "
-    />
+    /> -->
     <!-- upper right ridge -->
     <polyline
       points="
         065,045
-        120,100
+        130,110
       "
     />
     <!-- lower left ridge -->
     <polyline
       points="
         045,065
-        100,120
+        110,130
       "
     />
   </g>
   
-  <!-- popsicle stick -->
-  <polyline
-    style="fill:#db8; stroke:#000; stroke-width:8;"
-    points="
-      125,105
-      155,135
-      155,145
-      145,155
-      135,155
-      105,125
-    "
-  />
-  
-  <!-- drops -->
+  <!-- drops
   <polyline
     style="fill:#fed; stroke:#000; stroke-width:8;"
     points="
@@ -150,5 +171,5 @@
       050,115
       055,090
     "
-  />
+  /> -->
 </svg> 
