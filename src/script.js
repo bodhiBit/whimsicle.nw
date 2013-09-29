@@ -8,10 +8,11 @@ maxerr:50, newcap:true, browser:true, node:true */
       ChildProcess = require("child_process"),
       Gui = require("nw.gui");
       
-  
   var appsPath,
       appsUrl,
-      config;
+      config,
+      iframe,
+      startupFiles = [];
   
   function _init(){
     for (var i = 0; i < Gui.App.argv.length; i++) {
@@ -23,6 +24,8 @@ maxerr:50, newcap:true, browser:true, node:true */
           appsPath = Path.resolve(keyValPair[1]);
           break;
         }
+      } else {
+        startupFiles.push(whimPath(arg));
       }
     }
     if (!appsPath) {
@@ -59,17 +62,18 @@ maxerr:50, newcap:true, browser:true, node:true */
     Fs.exists(appsPath, function(exists){
       if (exists) {
         Gui.Window.get().maximize();
-        window.addEventListener("message", onMessage);
+        window.addEventListener("message", _onMessage);
+        Gui.App.on("open", _onOpen);
         config = undefined;
         
-        var iframe = document.createElement("iframe");
+        iframe = document.createElement("iframe");
         iframe.setAttribute("src", appsPath+"/");
         appsUrl = iframe.src;
-        if (location.hash) {
-          iframe.setAttribute("src", location.hash.substr(1));
-        } else {
-          iframe.setAttribute("src", appsUrl+"index.html");
+        var startPage = "index.html";
+        for (var i = 0; i < startupFiles.length; i++) {
+          startPage += "#" + startupFiles[i];
         }
+        iframe.setAttribute("src", appsUrl+startPage);
         iframe.setAttribute("nwdisable", true);
         document.body.appendChild(iframe);
       } else {
@@ -109,7 +113,35 @@ maxerr:50, newcap:true, browser:true, node:true */
     document.body.appendChild(el);
   }
   
-  function onMessage(event) {
+  function _onOpen(cmdline) {
+    var argv = ("--"+cmdline).split(" ");
+    var fileArgs = false;
+    var multiArg = false;
+    for (var i = 0; i < argv.length; i++) {
+      var arg = argv[i];
+      if (arg.substr(0,1) === "\"" || arg.substr(0,1) === "'" ) {
+        multiArg = arg.substr(1);
+        arg = "--multiArg";
+      } else if (multiArg) {
+        multiArg += " " + arg;
+        arg = "--multiArg";
+      }
+      if (multiArg && (multiArg.substr(-1) === "\"" || multiArg.substr(-1) === "'" )) {
+        arg = multiArg.substr(0, multiArg.length-1);
+        multiArg = false;
+      }
+      if (arg.substr(0,2) === "--") {
+        fileArgs = true;
+      } else if (fileArgs) {
+        iframe.contentWindow.postMessage(JSON.stringify({
+          intent: "open",
+          path: whimPath(arg)
+        }), appsUrl+"/*");
+      }
+    }
+  }
+  
+  function _onMessage(event) {
     var data = JSON.parse(event.data);
     if (event.source.location.toString().substr(0, appsUrl.length) === appsUrl) {
       if (data.syscall) {
@@ -164,6 +196,8 @@ maxerr:50, newcap:true, browser:true, node:true */
         default:
           respond({ success: false, status: "unknown command" });
         }
+      } else {
+        iframe.contentWindow.postMessage(JSON.stringify(data), appsUrl+"/*");
       }
     } else {
       console.log("System got an unauthorized message from "+event.source.location);
@@ -236,6 +270,28 @@ maxerr:50, newcap:true, browser:true, node:true */
     } else {
       return undefined;
     }
+  }
+  
+  function whimPath(path) {
+    path = Path.resolve(process.cwd(), path);
+    var config = getConfig();
+    if (Path.sep === "\\") {
+      path = path.substr(0,1).toUpperCase()+path.substr(1);
+    }
+    for(var ws in config.workspaces) {
+      if (config.workspaces.hasOwnProperty(ws)) {
+        var wsPath = realPath("["+ws+"]/");
+        if (wsPath && path.substr(0, wsPath.length) === wsPath) {
+          path = "["+ws+"]" + path.substr(wsPath.length);
+        }
+      }
+    }
+    if (Path.sep === "\\" && !(path.substr(0,1) === "/" || path.substr(0,1) === "[")) {
+      var drive = path.substr(0,1).toUpperCase();
+      path = Path.sep+drive+"-drive"+path.substr(2);
+    }
+    path = path.replace(/\\/g, "/");
+    return path;
   }
   
   function doProbe(path, cb) {
