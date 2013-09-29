@@ -18,3 +18,9 @@ Windows
     - faster startup
     - lets you hack, tweak and create your own whimsicle-apps
     - updates easily from github
+
+Mac OS X
+--------
+ - [whimsicle.app.zip](https://www.dropbox.com/s/iochbp1xoeqv2kt/whimsicle.app.zip)
+    - drag the app to Applications to install
+
