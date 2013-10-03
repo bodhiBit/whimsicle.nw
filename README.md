@@ -1,5 +1,5 @@
-whimsicle.node-webkit
-=====================
+whimsicle.nw
+============
 ![icon](https://raw.github.com/bodhiBit/whimsicle.node-webkit/master/src/icons/icon128.png)
 
 [Node-webkit](https://github.com/rogerwang/node-webkit) based
