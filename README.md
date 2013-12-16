@@ -7,6 +7,8 @@ shell for [whimsicle](https://github.com/bodhiBit/whimsicle-apps)..
 
 Downloads
 =========
+Version 0.1
+
  - [whimsicle.nw](https://www.dropbox.com/s/agh18dgdvdznjf1/whimsicle.nw)
     - doesn't require git
     - whimsicle-apps built in; only config.json is saved to localStorage

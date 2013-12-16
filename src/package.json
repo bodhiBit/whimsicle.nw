@@ -1,6 +1,6 @@
 {
   "name": "whimsicle",
-  "version": "0.0.4",
+  "version": "0.1",
   "main": "index.html",
   "single-instance": true,
   "window": {

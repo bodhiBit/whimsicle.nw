@@ -8,11 +8,15 @@ maxerr:50, newcap:true, browser:true, node:true */
       ChildProcess = require("child_process"),
       Gui = require("nw.gui");
       
-  var appsPath,
-      appsUrl,
+  var appsPath = "",
+      appsUrl = "../",
       config,
       iframe,
-      startupFiles = [];
+      title = document.title,
+      modified = false,
+      startupFiles = [],
+      textExtentions = [],
+      binaryExtentions = [];
   
   function _init(){
     for (var i = 0; i < Gui.App.argv.length; i++) {
@@ -25,7 +29,7 @@ maxerr:50, newcap:true, browser:true, node:true */
           break;
         }
       } else {
-        startupFiles.push(whimPath(arg));
+        startupFiles.push(whimPath(arg, true));
       }
     }
     if (!appsPath) {
@@ -33,10 +37,10 @@ maxerr:50, newcap:true, browser:true, node:true */
       ChildProcess.exec(command, function(err){
         if (err) {
           appsPath = Path.resolve("apps");
-          if (localStorage.getItem("config.json")) {
+          if (localStorage.getItem("[apps]/config.json")) {
             doWrite(
               appsPath+Path.sep+"config.json",
-              localStorage.getItem("config.json"),
+              localStorage.getItem("[apps]/config.json"),
               "utf8",
               function(){
                 _startApp();
@@ -47,8 +51,8 @@ maxerr:50, newcap:true, browser:true, node:true */
           }
         } else {
           appsPath = realPath("[home]/whimsicle-apps");
-          if (localStorage.getItem("config.json")) {
-            localStorage.removeItem("config.json");
+          if (localStorage.getItem("[apps]/config.json")) {
+            localStorage.removeItem("[apps]/config.json");
           }
           _startApp();
         }
@@ -63,6 +67,7 @@ maxerr:50, newcap:true, browser:true, node:true */
       if (exists) {
         Gui.Window.get().maximize();
         window.addEventListener("message", _onMessage);
+        Gui.Window.get().on("close", _onQuit);
         Gui.App.on("open", _onOpen);
         config = undefined;
         
@@ -71,7 +76,7 @@ maxerr:50, newcap:true, browser:true, node:true */
         appsUrl = iframe.src;
         var startPage = "index.html";
         for (var i = 0; i < startupFiles.length; i++) {
-          startPage += "#" + startupFiles[i];
+          startPage += "#" + window.escape(startupFiles[i]);
         }
         iframe.setAttribute("src", appsUrl+startPage);
         iframe.setAttribute("nwdisable", true);
@@ -161,7 +166,7 @@ maxerr:50, newcap:true, browser:true, node:true */
         switch (data.syscall) {
         case "config":
           if (data.config) {
-            doWrite(appsPath+"/config.json", JSON.stringify(data.config), "utf8", function(result) {
+            doWrite(appsPath+"/config.json", JSON.stringify(data.config, null, 2), "utf8", function(result) {
               result.config = getConfig();
               respond(result);
             });
@@ -196,11 +201,74 @@ maxerr:50, newcap:true, browser:true, node:true */
         default:
           respond({ success: false, status: "unknown command" });
         }
+      } else if (data.intent) {
+        switch (data.intent) {
+        case "appInfo":
+          modified = data.isModified;
+          document.title = title + (modified?"*":"");
+          reply(event, { success: true, status: "ok" });
+          break;
+        case "close":
+          Gui.Window.get().close(true);
+          reply(event, { success: true, status: "ok" });
+          break;
+        case "closeAll":
+          Gui.Window.get().close();
+          reply(event, { success: true, status: "ok" });
+          break;
+        case "quit":
+          Gui.Window.get().close();
+          reply(event, { success: true, status: "ok" });
+          break;
+        default:
+          respond({ success: false, status: "unknown intent" });
+        }
       } else {
         iframe.contentWindow.postMessage(JSON.stringify(data), appsUrl+"/*");
       }
     } else {
       console.log("System got an unauthorized message from "+event.source.location);
+    }
+  }
+  
+  function _onQuit() {
+    if (modified) {
+      if (confirm("There are unsaved changes!\nDiscard?")) {
+        Gui.Window.get().close(true);
+      }
+    } else {
+      Gui.Window.get().close(true);
+    }
+  }
+
+  function _fileIsBinary(path, size, cb) {
+    var ext = path.toLowerCase().substr(path.lastIndexOf(".")+1);
+    if (textExtentions.indexOf(ext) > -1) {
+      cb({ success: true, status: "ok", isBinary: false });
+    } else if (binaryExtentions.indexOf(ext) > -1) {
+      cb({ success: true, status: "ok", isBinary: true });
+    } else if (size < 1024*1024) {
+      Fs.readFile(path, function(err, data) {
+        if (err) {
+          cb({ success: false, status: "err", err: err });
+        } else {
+          var i=0, binary=false, ctrlCodes = [9, 10, 13];
+          while (i<data.length && !binary){
+            if(data[i] < 32 && ctrlCodes.indexOf(data[i]) < 0){
+              binary=true;
+            }
+            i++;
+          }
+          if (binary) {
+            binaryExtentions.push(ext);
+          } else {
+            textExtentions.push(ext);
+          }
+          cb({ success: true, status: "ok", isBinary: binary });
+        }
+      });
+    } else {
+      cb({ success: true, status: "ok", isBinary: true });
     }
   }
   
@@ -215,22 +283,33 @@ maxerr:50, newcap:true, browser:true, node:true */
   }
   
   function getConfig() {
+    var file = false;
     if (!config) {
       try {
-        var data = Fs.readFileSync(appsPath+"/config.json");
+        var data = Fs.readFileSync(appsPath+"/config.json", {encoding: "utf8"});
         if (data) {
+          file = true;
           config = JSON.parse(data);
         }
       } catch (e) {
         config = {};
       }
     }
-    config.appsUrl = appsUrl;
-    if (!config.workspaces) {
-      config.workspaces = {};
+    if (config.appsUrl !== appsUrl) {
+      config.appsUrl = appsUrl;
+      if (!config.workspaces) {
+        config.workspaces = {
+          code: "[home]/code"
+        };
+      }
+      config.workspaces.home = whimPath(process.env.HOME || (process.env.HOMEDRIVE+process.env.HOMEPATH));
+      config.workspaces.apps = whimPath(appsPath);
+      if (file) {
+        setTimeout(function() {
+          doWrite(appsPath+"/config.json", JSON.stringify(config, null, 2), "utf8", function() {});
+        }, 1000);
+      }
     }
-    config.workspaces.home = process.env.HOME || (process.env.HOMEDRIVE+process.env.HOMEPATH);
-    config.workspaces.apps = appsPath;
     return config;
   }
   
@@ -272,17 +351,19 @@ maxerr:50, newcap:true, browser:true, node:true */
     }
   }
   
-  function whimPath(path) {
+  function whimPath(path, useWorkspaces) {
     path = Path.resolve(process.cwd(), path);
     var config = getConfig();
     if (Path.sep === "\\") {
       path = path.substr(0,1).toUpperCase()+path.substr(1);
     }
-    for(var ws in config.workspaces) {
-      if (config.workspaces.hasOwnProperty(ws)) {
-        var wsPath = realPath("["+ws+"]/");
-        if (wsPath && path.substr(0, wsPath.length) === wsPath) {
-          path = "["+ws+"]" + path.substr(wsPath.length);
+    if (useWorkspaces) {
+      for(var ws in config.workspaces) {
+        if (config.workspaces.hasOwnProperty(ws)) {
+          var wsPath = realPath("["+ws+"]/");
+          if (wsPath && path.substr(0, wsPath.length) === wsPath) {
+            path = "["+ws+"]" + path.substr(wsPath.length);
+          }
         }
       }
     }
@@ -300,12 +381,18 @@ maxerr:50, newcap:true, browser:true, node:true */
       if (err) {
         cb({ success: false, status: "err", err: err });
       } else {
-        stats.url = "file://" + path.replace(/\\/g, "/");
-        stats.name = Path.basename(path);
-        stats.isFile = stats.isFile();
-        stats.isDir = stats.isDirectory();
-        stats.isLink = stats.isSymbolicLink();
-        cb({ success: true, status: "ok", properties: stats });
+        _fileIsBinary(path, stats.size, function(result) {
+          if (result.success) {
+            stats.isBinary = result.isBinary;
+          }
+          // TODO http urls
+          stats.url = "file://" + path.replace(/\\/g, "/");
+          stats.name = Path.basename(path);
+          stats.isFile = stats.isFile();
+          stats.isDir = stats.isDirectory();
+          stats.isLink = stats.isSymbolicLink();
+          cb({ success: true, status: "ok", properties: stats });
+        });
       }
     });
   }
@@ -426,10 +513,8 @@ maxerr:50, newcap:true, browser:true, node:true */
               cb({ success: false, status: "err", err: err });
             }
           } else {
-            if (path === realPath("[apps]/config.json")) {
-              localStorage.setItem("config.json", data);
-            }
             if (Path.basename(path) === "config.json") {
+              localStorage.setItem(whimPath(path, true), data);
               config = undefined;
             }
             cb({ success: true, status: status });
@@ -579,7 +664,7 @@ maxerr:50, newcap:true, browser:true, node:true */
     }
     
     if (path) {
-      Gui.Shell.openItem(url);
+      Gui.Shell.openItem(path);
     } else {
       Gui.Shell.openExternal(url);
     }
