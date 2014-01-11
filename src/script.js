@@ -139,7 +139,7 @@ maxerr:50, newcap:true, browser:true, node:true */
         fileArgs = true;
       } else if (fileArgs) {
         iframe.contentWindow.postMessage(JSON.stringify({
-          intent: "open",
+          intent: "openPath",
           path: whimPath(arg)
         }), appsUrl+"/*");
       }
