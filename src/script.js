@@ -385,7 +385,6 @@ maxerr:50, newcap:true, browser:true, node:true */
           if (result.success) {
             stats.isBinary = result.isBinary;
           }
-          // TODO http urls
           stats.url = "file://" + path.replace(/\\/g, "/");
           stats.name = Path.basename(path);
           stats.isFile = stats.isFile();
