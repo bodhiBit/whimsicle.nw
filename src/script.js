@@ -399,8 +399,11 @@ maxerr:50, newcap:true, browser:true, node:true */
   
   function doRead(path, encoding, cb) {
     if (!path) { return cb({ success: false, status: "illegal path" }); }
+    if (typeof encoding !== "string") {
+      encoding = "utf8";
+    }
     if (path === "\\") {
-      var command = "fsutil fsinfo drives";
+      var command = "wmic logicaldisk get name";
       ChildProcess.exec(command, function(err, stdout, stderr){
         var out = {
           err: err,
@@ -418,10 +421,11 @@ maxerr:50, newcap:true, browser:true, node:true */
           var entries = [];
           var forloop = function(name){
             doProbe(name, function(r){
-              if (r.properties) {
-                r.properties.name = name.substr(0,1)+"-drive";
-                entries.push(r.properties);
+              if (!r.properties) {
+                r.properties = {};
               }
+              r.properties.name = name.substr(0,1)+"-drive";
+              entries.push(r.properties);
               entriesLeft--;
               if (entriesLeft === 0) {
                 cb({ success: true, status: "drive list read", entries: entries });
