@@ -3,8 +3,7 @@ git config user.name || git config --local user.name "$USER"
 git config user.email || git config --local user.email "$USER@example.com"
 
 git stash &&
-git pull &&
-git submodule update --recursive
+git pull --recurse-submodules
 
 git stash pop
 echo Press enter; read enter

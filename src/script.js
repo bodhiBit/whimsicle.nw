@@ -86,9 +86,8 @@ maxerr:50, newcap:true, browser:true, node:true */
         _appendElement("p", "Please wait - This may take a while...");
         
         var command =
-          'git clone https://github.com/bodhiBit/whimsicle-apps.git "'+
-          appsPath+'" && cd "'+
-          appsPath+'" && git submodule update --init --recursive';
+          'git clone --recursive https://github.com/bodhiBit/whimsicle-apps.git "'+
+          appsPath+'"';
         if (Path.sep === "\\") {
           command = appsPath.substr(0, appsPath.indexOf("\\"))+" && "+command;
         }
