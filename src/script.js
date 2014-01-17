@@ -20,6 +20,9 @@ maxerr:50, newcap:true, browser:true, node:true */
   
   function _init(){
     appsPath = realPath("[home]/whimsicle-apps");
+    if (location.search === "?newinstall") {
+      startupFiles.push("[apps]/config.json");
+    }
     for (var i = 0; i < Gui.App.argv.length; i++) {
       var arg = Gui.App.argv[i];
       if (arg.substr(0,2) === "--") {
@@ -78,7 +81,7 @@ maxerr:50, newcap:true, browser:true, node:true */
             }
             doCopy(updateFile, appsPath+Path.sep+updateFile, function() {
               ChildProcess.exec("chmod +x '"+appsPath+Path.sep+updateFile+"'", function(){
-                location.reload();
+                location.assign("?newinstall");
               });
             });
           }
