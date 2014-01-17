@@ -8,7 +8,7 @@ maxerr:50, newcap:true, browser:true, node:true */
       ChildProcess = require("child_process"),
       Gui = require("nw.gui");
       
-  var appsPath = "",
+  var appsPath = ".",
       appsUrl = "../",
       config,
       iframe,
@@ -19,6 +19,7 @@ maxerr:50, newcap:true, browser:true, node:true */
       binaryExtentions = [];
   
   function _init(){
+    appsPath = realPath("[home]/whimsicle-apps");
     for (var i = 0; i < Gui.App.argv.length; i++) {
       var arg = Gui.App.argv[i];
       if (arg.substr(0,2) === "--") {
@@ -32,34 +33,7 @@ maxerr:50, newcap:true, browser:true, node:true */
         startupFiles.push(whimPath(arg, true));
       }
     }
-    if (!appsPath) {
-      var command = "git --version";
-      ChildProcess.exec(command, function(err){
-        if (err) {
-          appsPath = Path.resolve("apps");
-          if (localStorage.getItem("[apps]/config.json")) {
-            doWrite(
-              appsPath+Path.sep+"config.json",
-              localStorage.getItem("[apps]/config.json"),
-              "utf8",
-              function(){
-                _startApp();
-              }
-            );
-          } else {
-            _startApp();
-          }
-        } else {
-          appsPath = realPath("[home]/whimsicle-apps");
-          if (localStorage.getItem("[apps]/config.json")) {
-            localStorage.removeItem("[apps]/config.json");
-          }
-          _startApp();
-        }
-      });
-    } else {
-      _startApp();
-    }
+    _startApp();
   }
   
   function _startApp() {
@@ -88,13 +62,15 @@ maxerr:50, newcap:true, browser:true, node:true */
         var command =
           'git clone --recursive https://github.com/bodhiBit/whimsicle-apps.git "'+
           appsPath+'"';
-        if (Path.sep === "\\") {
-          command = appsPath.substr(0, appsPath.indexOf("\\"))+" && "+command;
-        }
         _appendElement("code", command);
         ChildProcess.exec(command, function(err, stdout, stderr){
           if (err) {
             _appendElement("pre", stdout+stderr);
+            ChildProcess.exec("git --version", function(err){
+              if (err) {
+                location.assign("nogit.html");
+              }
+            });
           } else {
             var updateFile = "update.sh";
             if (process.platform === "win32") {
