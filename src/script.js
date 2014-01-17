@@ -304,9 +304,7 @@ maxerr:50, newcap:true, browser:true, node:true */
       config.workspaces.home = whimPath(process.env.HOME || (process.env.HOMEDRIVE+process.env.HOMEPATH));
       config.workspaces.apps = whimPath(appsPath);
       if (file) {
-        setTimeout(function() {
-          doWrite(appsPath+"/config.json", JSON.stringify(config, null, 2), "utf8", function() {});
-        }, 1000);
+        Fs.writeFileSync(appsPath+"/config.json", JSON.stringify(config, null, 2));
       }
     }
     return config;
